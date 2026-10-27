@@ -1,0 +1,264 @@
+{
+  "schema_version": 1,
+  "name": "duplo_nucleo_15min_20261013",
+  "mode": "derivado",
+  "reference": "Independent 15min retraining; nominal development through 16Feb, 17Feb context only, 18Feb test; retrospective interpolation.",
+  "inputs": {
+    "data_root": "../Dados",
+    "ismr_directories": [
+      "Dados ismr 23-24"
+    ],
+    "space_weather_files": [
+      "Geomagnéticos/geomagneticos 2023.txt",
+      "Geomagnéticos/dados_solar_geomag_2024.txt"
+    ],
+    "clean_sources": {
+      "FRTZ": {
+        "path": "experimentos/relatorio_todas_estacoes_dez2023_mar2024_20261011/FRTZ/dados_processados/FRTZ/FRTZ_clean.csv",
+        "quality_report": "experimentos/relatorio_todas_estacoes_dez2023_mar2024_20261011/FRTZ/dados_processados/FRTZ/EDA/relatorio_controle_qualidade.csv",
+        "ismr_manifest": "experimentos/relatorio_todas_estacoes_dez2023_mar2024_20261011/FRTZ/dados_processados/FRTZ/lista_arquivos_ismr.txt",
+        "source_configuration": "experimentos/relatorio_todas_estacoes_dez2023_mar2024_20261011/config_todas_estacoes.json"
+      },
+      "PALM": {
+        "path": "experimentos/relatorio_todas_estacoes_dez2023_mar2024_20261011/PALM/dados_processados/PALM/PALM_clean.csv",
+        "quality_report": "experimentos/relatorio_todas_estacoes_dez2023_mar2024_20261011/PALM/dados_processados/PALM/EDA/relatorio_controle_qualidade.csv",
+        "ismr_manifest": "experimentos/relatorio_todas_estacoes_dez2023_mar2024_20261011/PALM/dados_processados/PALM/lista_arquivos_ismr.txt",
+        "source_configuration": "experimentos/relatorio_todas_estacoes_dez2023_mar2024_20261011/config_todas_estacoes.json"
+      },
+      "PRU2": {
+        "path": "experimentos/relatorio_todas_estacoes_dez2023_mar2024_20261011/PRU2/dados_processados/PRU2/PRU2_clean.csv",
+        "quality_report": "experimentos/relatorio_todas_estacoes_dez2023_mar2024_20261011/PRU2/dados_processados/PRU2/EDA/relatorio_controle_qualidade.csv",
+        "ismr_manifest": "experimentos/relatorio_todas_estacoes_dez2023_mar2024_20261011/PRU2/dados_processados/PRU2/lista_arquivos_ismr.txt",
+        "source_configuration": "experimentos/relatorio_todas_estacoes_dez2023_mar2024_20261011/config_todas_estacoes.json"
+      },
+      "POAL": {
+        "path": "experimentos/relatorio_todas_estacoes_dez2023_mar2024_20261011/POAL/dados_processados/POAL/POAL_clean.csv",
+        "quality_report": "experimentos/relatorio_todas_estacoes_dez2023_mar2024_20261011/POAL/dados_processados/POAL/EDA/relatorio_controle_qualidade.csv",
+        "ismr_manifest": "experimentos/relatorio_todas_estacoes_dez2023_mar2024_20261011/POAL/dados_processados/POAL/lista_arquivos_ismr.txt",
+        "source_configuration": "experimentos/relatorio_todas_estacoes_dez2023_mar2024_20261011/config_todas_estacoes.json"
+      }
+    }
+  },
+  "outputs": {
+    "experiment_root": "experimentos/duplo_nucleo_15min_20261013",
+    "processed_data": "dados_processados",
+    "models": "modelos",
+    "results": "resultados",
+    "external_data": "dados_externos"
+  },
+  "period": {
+    "study_start": "2023-12-01 00:00:00",
+    "train_end": "2024-02-16 23:59:59",
+    "test_start": "2024-02-18 00:00:00",
+    "test_end": "2024-02-18 23:59:59"
+  },
+  "stations": [
+    "FRTZ",
+    "PALM",
+    "PRU2",
+    "POAL"
+  ],
+  "preprocessing": {
+    "time_resolution": "15min",
+    "forecast_minutes": 15,
+    "forecast_horizon_steps": 1,
+    "rolling_window_steps": 12,
+    "daily_lag_steps": 96,
+    "minimum_elevation": 15,
+    "maximum_elevation": 90,
+    "minimum_s4": 0,
+    "maximum_s4": 2,
+    "minimum_vtec": 0,
+    "maximum_vtec": 250,
+    "use_corrected_s4": true,
+    "earth_radius_km": 6371,
+    "ionosphere_height_km": 450
+  },
+  "classification": {
+    "target_threshold_s4": 0.5,
+    "filter_probability_threshold": 0.75,
+    "temporal_folds": 5,
+    "temporal_gap": "24h",
+    "random_state": 42,
+    "features": [
+      "elev",
+      "azim_sin",
+      "azim_cos",
+      "hour_sin",
+      "hour_cos",
+      "month_sin",
+      "month_cos",
+      "S4_mean_3h",
+      "S4_std_3h",
+      "S4_lag_24h",
+      "Kp",
+      "Dst",
+      "F107",
+      "Ap",
+      "SSN"
+    ],
+    "xgboost": {
+      "n_estimators": 150,
+      "max_depth": 6,
+      "learning_rate": 0.05,
+      "scale_pos_weight": 1,
+      "subsample": 0.8,
+      "colsample_bytree": 0.8
+    },
+    "tune_hyperparameters": true,
+    "threshold_objective": "F2"
+  },
+  "regression": {
+    "train_fraction": 0.9375,
+    "look_back": 96,
+    "piecewise_look_back_days": 15,
+    "lstm_units": 31,
+    "dropout": 0.2,
+    "optimizer": "adam",
+    "loss": "mse",
+    "epochs": 50,
+    "batch_size": 400,
+    "early_stopping_patience": 3,
+    "space_weather_features": [
+      "Kp",
+      "Dst",
+      "F107",
+      "Ap",
+      "SSN"
+    ],
+    "architectures": [
+      {
+        "id": "M1",
+        "organization": "convencional",
+        "attention": false,
+        "multivariate": false
+      },
+      {
+        "id": "M2",
+        "organization": "convencional",
+        "attention": false,
+        "multivariate": true
+      },
+      {
+        "id": "M3",
+        "organization": "convencional",
+        "attention": true,
+        "multivariate": false
+      },
+      {
+        "id": "M4",
+        "organization": "convencional",
+        "attention": true,
+        "multivariate": true
+      },
+      {
+        "id": "M5",
+        "organization": "piecewise",
+        "attention": false,
+        "multivariate": false
+      },
+      {
+        "id": "M6",
+        "organization": "piecewise",
+        "attention": false,
+        "multivariate": true
+      },
+      {
+        "id": "M7",
+        "organization": "piecewise",
+        "attention": true,
+        "multivariate": false
+      },
+      {
+        "id": "M8",
+        "organization": "piecewise",
+        "attention": true,
+        "multivariate": true
+      },
+      {
+        "id": "M9",
+        "organization": "convencional",
+        "multivariate": true,
+        "family": "convlstm"
+      },
+      {
+        "id": "M10",
+        "organization": "convencional",
+        "multivariate": false,
+        "family": "convlstm"
+      },
+      {
+        "id": "M11",
+        "organization": "piecewise",
+        "multivariate": false,
+        "family": "convlstm"
+      },
+      {
+        "id": "M12",
+        "organization": "piecewise",
+        "multivariate": true,
+        "family": "convlstm"
+      }
+    ],
+    "lstm_layers": 3,
+    "learning_rate": 0.0005,
+    "learning_rate_candidates": [
+      0.05,
+      0.005,
+      0.0005,
+      0.00005,
+      0.000005,
+      5e-7
+    ],
+    "output_activation": "leaky_relu",
+    "leaky_relu_slope": 0.3,
+    "loss_masking": false,
+    "branch_target_models": [
+      "M1",
+      "M2",
+      "M3",
+      "M4",
+      "M5",
+      "M6",
+      "M7",
+      "M8"
+    ],
+    "common_target_models": [
+      "M9",
+      "M10",
+      "M11",
+      "M12"
+    ],
+    "convlstm_candidates": [
+      {
+        "filters": 16,
+        "learning_rate": 0.001
+      },
+      {
+        "filters": 32,
+        "learning_rate": 0.0003
+      }
+    ],
+    "convlstm_batch_size": 64,
+    "convlstm_epochs": 60,
+    "convlstm_early_stopping_patience": 8
+  },
+  "validation": {
+    "allow_ismr_gaps": true,
+    "require_complete_test_reference": true,
+    "minimum_fit_sequences": 10,
+    "minimum_early_stopping_observed_targets": 2,
+    "minimum_selection_observed_targets": 2,
+    "coverage_fallback_week_days": 7
+  },
+  "protocol": {
+    "time_resolution": "15min",
+    "forecast_minutes": 15,
+    "forecast_horizon_steps": 1
+  },
+  "resources": {
+    "minimum_free_gib": 5,
+    "training_workers": 1,
+    "threads": 2
+  }
+}

@@ -1,0 +1,212 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>GNSS · Visual Analytics</title>
+<style>
+:root{--ink:#183149;--muted:#617486;--teal:#087e8b;--orange:#dc5b32;--purple:#9333a8;--line:#dce5ed;--paper:#f2f6f9}
+*{box-sizing:border-box}body{margin:0;background:var(--paper);color:var(--ink);font:14px/1.5 system-ui,Segoe UI,sans-serif}header{background:#132e43;color:white;padding:30px max(24px,calc((100vw - 1480px)/2))}header small{color:#83d6da;letter-spacing:2px;font-size:11px}h1{font-size:32px;line-height:1.15;margin:10px 0}header p{margin:0;color:#c4d5e2}main{max-width:1528px;margin:auto;padding:24px}h2{font-size:19px;margin:0}h3{font-size:15px;margin:0}p{margin:6px 0 12px}.muted{color:var(--muted)}.toolbar,.card{background:white;border:1px solid var(--line);border-radius:12px;padding:20px;margin-bottom:18px}.toolbar{display:flex;align-items:end;gap:12px;flex-wrap:wrap}.toolbar label,.field{display:flex;flex-direction:column;gap:5px;font-size:12px;color:var(--muted)}input,select,button{font:inherit;border:1px solid #c5d2dd;border-radius:6px;padding:8px 10px;background:white;color:var(--ink)}button{cursor:pointer;font-weight:600}button:hover{border-color:var(--teal);background:#effafa}button:disabled{opacity:.4;cursor:default}button.primary{background:var(--teal);border-color:var(--teal);color:white}.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:18px}.stat{background:white;border:1px solid var(--line);border-radius:10px;padding:16px 20px}.stat strong{font-size:27px;display:block;letter-spacing:-1px}.stat span{font-size:12px;color:var(--muted)}.legend{display:flex;gap:17px;flex-wrap:wrap;font-size:12px;margin:12px 0;color:var(--muted)}.legend span:before{content:"";display:inline-block;width:9px;height:9px;border-radius:50%;background:var(--c);margin-right:6px}.legend .ring:before{background:transparent;border:2px solid var(--c);width:10px;height:10px}.grid{display:grid;grid-template-columns:1.5fr 1fr;gap:18px}.chart{width:100%;height:330px;display:block;touch-action:none}.tall{height:430px}.short{height:195px}.plothead{display:flex;justify-content:space-between;align-items:start;gap:12px}.plothead button{font-size:11px;padding:5px 8px}.badge{display:inline-block;background:#edf6f7;color:var(--teal);border-radius:4px;padding:3px 7px;font-size:11px}.note{padding:12px 15px;background:#f3f7fa;border-left:3px solid #98b1c6;font-size:12px;margin-top:10px}.scroll{overflow:auto;max-height:470px}table{border-collapse:collapse;width:100%;font-size:12px;white-space:nowrap}th{position:sticky;top:0;background:#edf3f7;color:var(--muted);text-align:left}td,th{padding:9px 12px;border-bottom:1px solid var(--line)}td button{padding:4px 8px;font-size:11px}.removed{background:#faf1fc}.alert{color:var(--orange)}.actions{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-top:12px}.status{min-height:22px;color:var(--teal);font-size:12px}.error{color:#a93226}.tooltip{display:none;position:fixed;pointer-events:none;background:#132e43;color:white;border-radius:8px;padding:11px 14px;font-size:12px;z-index:10;box-shadow:0 4px 20px #0003;white-space:pre-line;max-width:320px}footer{font-size:12px;color:var(--muted);padding:8px 0 30px}a{color:var(--teal)}input[type=number]{width:105px}input[type=checkbox]{accent-color:var(--teal)}.check{flex-direction:row!important;align-items:center;padding-bottom:8px}#reason{min-width:230px}button:focus-visible,input:focus-visible,select:focus-visible{outline:3px solid #67bdca;outline-offset:2px}@media(max-width:900px){.grid{grid-template-columns:1fr}.stats{grid-template-columns:repeat(2,1fr)}main{padding:12px}header{padding:24px}.toolbar{padding:14px}.chart{height:300px}.tall{height:360px}}
+</style>
+<style>
+header{background:linear-gradient(115deg,#10273c,#174c60);border-bottom:4px solid #b88919}header h1{letter-spacing:-1px}.card{box-shadow:0 3px 18px #18314907}.plotframe{position:relative}.linked-cursor{display:none;position:absolute;top:20px;bottom:45px;border-left:1px dashed #183149aa;pointer-events:none}.linked-dot{display:none;position:absolute;width:14px;height:14px;border:2px solid #183149;border-radius:50%;transform:translate(-50%,-50%);pointer-events:none;background:#ffffff66}.stepstrip{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:18px}.stepstrip span{padding:6px 10px;background:#e5eef4;border-radius:5px;font-size:12px}.stepstrip strong{color:var(--teal)}.legend .model:before{height:2px;width:17px;border-radius:0;vertical-align:middle}.legend .diamond:before{background:transparent;border:2px solid var(--c);border-radius:0;transform:rotate(45deg)}.restored{background:#f4effa}#review-proof{color:var(--teal)}
+</style>
+</head>
+<body>
+<header><small>GNSS + MACHINE LEARNING / DUPLO NÚCLEO</small><h1><span id="station"></span> · S4 &amp; VTEC</h1><p>Evidência observada em pontos, previsões em linhas e revisão posterior às métricas.</p></header>
+<main>
+<div class="stepstrip"><span><strong>01</strong> Medições e inferência salvas</span><span><strong>02</strong> Métricas dos dois núcleos concluídas</span><span><strong>03</strong> Exploração e revisão derivada</span></div>
+<div class="toolbar" aria-label="Filtros compartilhados">
+<label>Início UTC<input id="start" type="datetime-local" step="1800"></label>
+<label>Fim UTC<input id="end" type="datetime-local" step="1800"></label>
+<label>Satélite · observações<select id="svid"><option value="all">Todos os SVIDs</option></select></label>
+<button id="apply" class="primary">Aplicar período</button><button id="full">Histórico completo</button><button id="last">Últimos 3 dias</button><button id="test">Dia de teste</button>
+</div>
+<div class="stats"><div class="stat"><strong id="nobs">—</strong><span>Observações VTEC no recorte</span></div><div class="stat"><strong id="nalerts" style="color:var(--orange)">—</strong><span>Alertas originais · época/SVID no recorte</span></div><div class="stat"><strong id="nmanual" style="color:var(--purple)">0</strong><span>Decisões manuais · histórico inteiro</span></div><div class="stat"><strong id="effect">—</strong><span>Δ absoluto médio da revisão (TECU) · recorte</span></div></div>
+<section class="card">
+<div class="plothead"><div><h2>01 / Série histórica de VTEC</h2><p class="muted">Dispersão por satélite e mediana da estação. Arraste na horizontal para ampliar um período; passe sobre um ponto para inspecionar.</p></div><button data-image="history">Salvar PNG</button></div>
+<div class="legend"><span style="--c:#64748b">VTEC real por SVID</span><span style="--c:#b88919">CS observada no mesmo SVID</span><span class="model" style="--c:#183149">Mediana original</span><span class="model" style="--c:#087e8b">Mediana filtrada</span><span class="ring" style="--c:#dc5b32">Alerta original</span><span class="diamond" style="--c:#9333a8">Falso positivo · VTEC restaurado</span><span style="--c:#9333a8">× = medição excluída</span></div>
+<canvas id="history" class="chart tall" role="img" aria-label="VTEC por época com detecções circuladas"></canvas>
+<div class="note">Cada ponto é uma média observada em 30 minutos por SVID, já reamostrada na entrada. As linhas representam medianas da estação inteira e incluem interpolação; lacunas de medição continuam sem pontos. S4, VTEC e CS compartilham o período, o SVID e o cursor de inspeção.</div>
+</section>
+<section class="card">
+<div class="plothead"><div><h2>02 / Épocas detectadas pelo Núcleo 1</h2><p class="muted">S4 observado e probabilidade prevista para o mesmo instante-alvo, em eixos separados.</p></div><span class="badge">Horizonte: 30 min</span></div>
+<canvas id="s4plot" class="chart short" role="img" aria-label="S4 observado com limiar e círculos de detecção"></canvas>
+<canvas id="probplot" class="chart short" role="img" aria-label="Probabilidades do Núcleo 1 com limiar"></canvas>
+<div class="legend"><span style="--c:#64748b">S4 real por SVID · média de 30 min</span><span style="--c:#b88919">CS observada · S4 ≥ limiar</span><span class="ring" style="--c:#dc5b32">Alerta salvo · instante-alvo</span></div>
+<canvas id="csplot" class="chart short" role="img" aria-label="Número de satélites com cintilação observada em cada época de 30 minutos"></canvas>
+<p class="muted" id="threshold-note"></p>
+<div class="note">CS observada é a classificação de S4 após a média de 30 minutos. A contagem soma os SVIDs observados nesse intervalo; ela não representa a duração do evento nem recupera picos subamostrados. O círculo representa a previsão salva do Núcleo 1.</div>
+</section>
+<div class="grid">
+<section class="card">
+<div class="plothead"><div><h2>03 / Original × tratado</h2><p class="muted">Um ponto por época da estação no recorte. Linha tracejada = identidade 1:1.</p></div><button data-image="scatter">Salvar PNG</button></div>
+<div class="legend"><span style="--c:#087e8b">Filtrado automático</span><span style="--c:#9333a8">Revisado manualmente</span><span class="ring" style="--c:#dc5b32">Época com SVID sinalizado</span></div>
+<canvas id="scatter" class="chart" role="img" aria-label="Dispersão VTEC original versus filtrado e revisado"></canvas>
+</section>
+<section class="card"><h2>04 / O que mudou na série</h2><p class="muted">Diferenças em relação à mediana original, no período selecionado.</p><div class="legend"><span style="--c:#087e8b">Filtrado − original</span><span style="--c:#9333a8">Revisado − original</span></div><canvas id="delta" class="chart" role="img" aria-label="Diferenças temporais entre as séries"></canvas></section>
+</div>
+<section class="card">
+<h2>05 / Revisão manual após as métricas</h2><p class="muted">Retirar um falso alerta restaura o VTEC daquela época/SVID na série revisada. A exclusão de uma medição é uma ação separada. Cada decisão exige inspeção e motivo.</p><p id="review-proof"></p>
+<div class="toolbar" style="margin:12px 0;padding:12px;background:#f7fafc">
+<label>Ação de revisão<select id="review-action"><option value="falso_positivo">Falso positivo · restaurar VTEC</option><option value="excluir_observacao">Excluir medição da série derivada</option></select></label>
+<label>Critério<select id="criterion"><option value="S4">S4 observado</option><option value="probabilidade_severa">Probabilidade do Núcleo 1</option><option value="VTEC">VTEC observado (TECU)</option></select></label>
+<label>Abaixo de (estrito &lt;)<input id="threshold" type="number" step="0.01" value="0.75"></label>
+<label class="check"><input id="only-alerts" type="checkbox" checked disabled>Somente sinalizados pelo Núcleo 1</label>
+<label>Motivo da decisão<input id="reason" value="Revisão visual: alerta com S4 abaixo do limiar"></label>
+</div>
+<p class="muted" id="candidate-note"></p>
+<div class="scroll"><table><thead><tr><th>Época-alvo UTC</th><th>SVID</th><th>VTEC (TECU)</th><th>S4</th><th>Probabilidade</th><th>Núcleo 1</th><th>Origem da previsão</th><th>Revisão</th></tr></thead><tbody id="rows"></tbody></table></div>
+<div class="actions"><button id="prev">Anterior</button><span id="pages"></span><button id="next">Próxima</button><button id="undo">Desfazer última decisão</button><button id="reset">Desfazer toda a revisão</button></div>
+<div class="actions"><button id="export" class="primary">Exportar decisões JSON</button><button id="csv">Exportar série revisada CSV</button><label class="field">Retomar revisão<input id="import" type="file" accept=".json,application/json"></label></div>
+<div id="status" class="status" role="status" aria-live="polite"></div>
+<div class="note">O S4 observado é informação retrospectiva. As métricas e previsões científicas ficam preservadas; a revisão produz uma série derivada e um registro de auditoria. Para reproduzir os gráficos, exporte o JSON e execute <code>scripts/visual_analytics.py --station <span class="station"></span> --revisao caminho/decisoes.json</code> com o Python e a mesma configuração do experimento. A importação verifica a assinatura dos dados e os hashes das métricas. JSONs antigos de exclusão continuam aceitos.</div>
+</section>
+<section class="card">
+<div class="plothead"><div><h2>06 / Previsões de VTEC · teste final</h2><p class="muted">Valores reais por SVID e mediana observada em dispersão; previsões M1–M8 em linhas. Este painel mantém o dia de teste fixo.</p></div><button data-image="forecast">Salvar PNG</button></div>
+<div class="toolbar" style="padding:12px;margin-top:12px"><label>Histórico de treinamento<select id="branch"><option value="original">Original</option><option value="filtrado">Filtrado</option></select></label><label>Configuração<select id="model"><option value="all">Todas as configurações</option></select></label><span class="muted" id="model-info"></span></div>
+<div id="forecast-legend" class="legend"></div><canvas id="forecast" class="chart" role="img" aria-label="Série temporal das oito previsões de VTEC e valores originais"></canvas>
+<div class="note">No ramo original, o alvo é VTEC_original; no filtrado, VTEC_filtered. RMSE e R² referem-se ao respectivo alvo. A revisão manual não recalcula métricas de redes já treinadas.</div>
+</section>
+<footer>Dados locais · UTC · resolução de 30 minutos · nenhuma observação é removida automaticamente pela revisão. As decisões só entram nos arquivos do projeto ao importar o JSON pelo comando indicado. As figuras para o relatório estão nesta pasta em PNG, SVG e PDF.</footer>
+</main><div id="tooltip" class="tooltip"></div>
+<script id="gnss-data" type="application/json">__GNSS_DATA__</script>
+<script>
+"use strict";
+const D=JSON.parse(document.getElementById('gnss-data').textContent), $=id=>document.getElementById(id);
+const C={original:'#64748b',ink:'#183149',filtered:'#087e8b',alert:'#dc5b32',manual:'#9333a8',cs:'#b88919'}, palette=['#2563b0','#d46a2b','#229879','#a7509b','#bd9c24','#42a5ba','#674fb2','#8c6553'];
+const utc=s=>Date.parse(s.endsWith('Z')?s:s.replace(' ','T')+'Z');
+const date=t=>new Date(t).toISOString().slice(0,16), stamp=t=>new Date(t).toISOString().slice(0,19).replace('T',' '), num=(v,n=3)=>v===null||!Number.isFinite(v)?'—':v.toLocaleString('pt-BR',{maximumFractionDigits:n,minimumFractionDigits:n});
+const observations=D.observations.map((r,i)=>({i,t:utc(r[0]),svid:r[1],s4:r[2],v:r[3],p:r[4],alert:r[5],origin:r[6]}));
+const series=D.series.map(r=>({t:utc(r[0]),original:r[1],filtered:r[2],count:r[3],reviewed:r[2],observed:r[4]}));
+const models=D.models.map(m=>({...m,points:m.points.map(r=>({t:utc(r[0]),observed:r[1],predicted:r[2]}))}));
+const tmin=series[0].t,tmax=series.at(-1).t, selected=new Map(), charts=new Map();
+let visible=[],epochs=[],candidates=[],page=0,range=[tmin,tmax],active=null;
+const fields={probabilidade_severa:'p',S4:'s4',VTEC:'v'}, origin={out_of_fold:'Fora da amostra (OOF)',modelo_final:'Modelo final',sem_predicao:'Sem previsão',indisponivel_sem_passado:'Sem passado suficiente'};
+$('station').textContent=D.station;document.querySelectorAll('.station').forEach(el=>el.textContent=D.station);document.title=D.station+' · Visual Analytics';
+$('threshold').value=D.s4Threshold;
+$('threshold-note').textContent=`CS observada: S4 ≥ ${num(D.s4Threshold,2)} após a média em 30 min. Limiar probabilístico salvo da estação: ${num(D.probThreshold,3)}. Os círculos seguem a sinalização salva do Núcleo 1; probabilidades ausentes permanecem ausentes.`;
+$('review-proof').textContent=D.reviewAvailable?'Revisão habilitada: métricas dos dois núcleos já salvas e identificadas por SHA-256.':'Revisão indisponível: conclua e salve as métricas dos dois núcleos.';
+if(!D.reviewAvailable)for(const id of['export','csv','import','review-action'])$(id).disabled=true;
+const linkedIds=['history','s4plot','probplot','csplot','delta'];
+for(const id of linkedIds){const canvas=$(id),frame=document.createElement('div');frame.className='plotframe';canvas.before(frame);frame.append(canvas);for(const name of['linked-cursor','linked-dot']){const el=document.createElement('div');el.className=name;frame.append(el);}}
+function showLinked(row){for(const id of linkedIds){const ch=charts.get(id),frame=$(id).parentNode,cursor=frame.querySelector('.linked-cursor'),dot=frame.querySelector('.linked-dot');cursor.style.display=dot.style.display='none';if(!row||!ch||row.t<range[0]||row.t>range[1])continue;cursor.style.display='block';cursor.style.left=ch.X(row.t)+'px';const value=id==='history'?row.v:id==='s4plot'?row.s4:id==='probplot'?row.p:null;if(value!==null&&Number.isFinite(value)){dot.style.display='block';dot.style.left=ch.X(row.t)+'px';dot.style.top=ch.Y(value)+'px';}}}
+[...new Set(observations.map(r=>r.svid))].sort((a,b)=>a-b).forEach(s=>$('svid').add(new Option('SVID '+s,s)));
+[...new Set(models.map(m=>m.id))].forEach(id=>$('model').add(new Option(id,id)));
+function message(text,error=false){$('status').textContent=text;$('status').classList.toggle('error',error);}
+function download(name,content,type){const url=URL.createObjectURL(new Blob([content],{type}));const a=document.createElement('a');a.href=url;a.download=name;a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);}
+function limits(vals,fallback=[0,1]){let lo=Infinity,hi=-Infinity;for(const x of vals){if(x!==null&&Number.isFinite(x)){lo=Math.min(lo,x);hi=Math.max(hi,x);}}if(!Number.isFinite(lo))return fallback;const pad=(hi-lo||1)*.07;return [lo-pad,hi+pad];}
+function chart(id,xlim,ylim,ylabel,timed=true,xlabel=null){
+ const canvas=$(id),ctx=canvas.getContext('2d'),rect=canvas.getBoundingClientRect(),w=rect.width,h=rect.height,dpr=window.devicePixelRatio||1;
+ canvas.width=Math.round(w*dpr);canvas.height=Math.round(h*dpr);ctx.scale(dpr,dpr);ctx.fillStyle='white';ctx.fillRect(0,0,w,h);
+ const box={l:65,r:w-22,t:20,b:h-45}, X=x=>box.l+(x-xlim[0])/(xlim[1]-xlim[0]||1)*(box.r-box.l),Y=y=>box.b-(y-ylim[0])/(ylim[1]-ylim[0]||1)*(box.b-box.t);
+ ctx.font='11px system-ui';ctx.lineWidth=1;
+ for(let k=0;k<=4;k++){const y=ylim[0]+(ylim[1]-ylim[0])*k/4;ctx.strokeStyle='#e5edf2';ctx.beginPath();ctx.moveTo(box.l,Y(y));ctx.lineTo(box.r,Y(y));ctx.stroke();ctx.fillStyle='#617486';ctx.textAlign='right';ctx.fillText(num(y,Math.abs(y)<2?2:1),box.l-9,Y(y)+4);}
+ for(let k=0;k<=5;k++){const x=xlim[0]+(xlim[1]-xlim[0])*k/5;ctx.fillStyle='#617486';ctx.textAlign='center';let label=num(x,1);if(timed){const iso=date(x);label=xlim[1]-xlim[0]<=86400000?iso.slice(11):iso.slice(8,10)+'/'+iso.slice(5,7)+(xlim[1]-xlim[0]<=3*86400000?' '+iso.slice(11):'');}ctx.fillText(label,X(x),h-24);}
+ ctx.fillStyle=C.ink;ctx.textAlign='left';ctx.fillText(ylabel,box.l,11);ctx.textAlign='right';ctx.fillText(xlabel||(timed?'UTC':'VTEC original (TECU)'),box.r,h-5);
+ const state={canvas,ctx,w,h,box,X,Y,xlim,ylim,timed,hit:[]};charts.set(id,state);return state;
+}
+function dots(ch,points,color,radius=2,ring=false,alpha=1){const{ctx,X,Y,box}=ch;ctx.save();ctx.beginPath();ctx.rect(box.l,box.t,box.r-box.l,box.b-box.t);ctx.clip();ctx.globalAlpha=alpha;ctx.strokeStyle=color;ctx.fillStyle=color;ctx.lineWidth=1.5;ctx.beginPath();for(const p of points){if(p.y===null||!Number.isFinite(p.y))continue;const x=X(p.x),y=Y(p.y);ctx.moveTo(x+radius,y);ctx.arc(x,y,radius,0,2*Math.PI);if(p.row)ch.hit.push({x,y,row:p.row});}ring?ctx.stroke():ctx.fill();ctx.restore();}
+function line(ch,points,color,width=1.5,dash=[]){const{ctx,X,Y,box}=ch;ctx.save();ctx.beginPath();ctx.rect(box.l,box.t,box.r-box.l,box.b-box.t);ctx.clip();ctx.strokeStyle=color;ctx.lineWidth=width;ctx.setLineDash(dash);ctx.beginPath();let first=true;for(const p of points){if(p.y===null||!Number.isFinite(p.y)){first=true;continue;}if(first){ctx.moveTo(X(p.x),Y(p.y));first=false;}else ctx.lineTo(X(p.x),Y(p.y));}ctx.stroke();ctx.restore();}
+function crosses(ch,rows){const{ctx,X,Y}=ch;ctx.strokeStyle=C.manual;ctx.lineWidth=2;ctx.beginPath();for(const r of rows){const x=X(r.t),y=Y(r.v);ctx.moveTo(x-4,y-4);ctx.lineTo(x+4,y+4);ctx.moveTo(x-4,y+4);ctx.lineTo(x+4,y-4);}ctx.stroke();}
+function diamonds(ch,rows){const{ctx,X,Y}=ch;ctx.strokeStyle=C.manual;ctx.lineWidth=2;ctx.beginPath();for(const r of rows){const x=X(r.t),y=Y(r.v);ctx.moveTo(x,y-6);ctx.lineTo(x+6,y);ctx.lineTo(x,y+6);ctx.lineTo(x-6,y);ctx.closePath();}ctx.stroke();}
+const xy=(rows,key)=>rows.map(r=>({x:r.t,y:r[key],row:r}));
+function renderPlots(){
+ const alerts=visible.filter(r=>r.alert),manual=visible.filter(r=>selected.get(r.i)?.acao==='excluir_observacao'),restored=visible.filter(r=>selected.get(r.i)?.acao==='falso_positivo'),cs=visible.filter(r=>r.s4!==null&&r.s4>=D.s4Threshold);
+ let ch=chart('history',range,limits([...visible.map(r=>r.v),...epochs.flatMap(r=>[r.original,r.filtered,r.reviewed])]),'VTEC (TECU)');
+ dots(ch,xy(visible,'v'),C.original,2,false,.23);dots(ch,xy(cs,'v'),C.cs,2.8,false,.7);line(ch,xy(epochs,'original'),C.ink,1.2);line(ch,xy(epochs,'filtered'),C.filtered,1.8);dots(ch,xy(alerts,'v'),C.alert,5,true,.9);
+ if(selected.size){line(ch,xy(epochs,'reviewed'),C.manual,1.8);crosses(ch,manual);diamonds(ch,restored);}
+ for(const[id,key,max,label,threshold]of[['s4plot','s4',visible.reduce((m,r)=>Math.max(m,r.s4??0),1),'S4 observado',D.s4Threshold],['probplot','p',1,'Probabilidade de cintilação severa',D.probThreshold]]){
+  ch=chart(id,range,[-.03,max+.08],label);dots(ch,xy(visible,key),C.original,2,false,.3);if(key==='s4')dots(ch,xy(cs,key),C.cs,3,false,.8);dots(ch,xy(alerts,key),C.alert,5,true);line(ch,[{x:range[0],y:threshold},{x:range[1],y:threshold}],C.alert,1,[5,4]);ch.ctx.fillStyle=C.alert;ch.ctx.textAlign='right';ch.ctx.fillText('Limiar '+num(threshold,3),ch.box.r,ch.Y(threshold)-6);
+ }
+ const csGroups=new Map();for(const r of visible){if(!csGroups.has(r.t))csGroups.set(r.t,{t:r.t,n:0,observed:0,alerts:0});const g=csGroups.get(r.t);if(r.s4!==null){g.observed++;if(r.s4>=D.s4Threshold)g.n++;}if(r.alert)g.alerts++;}
+ const counts=[...csGroups.values()];ch=chart('csplot',range,[0,Math.max(1,...counts.map(r=>Math.max(r.n,r.alerts)))+1],'SVIDs com CS observada / alertas · 30 min');dots(ch,counts.filter(r=>r.observed).map(r=>({x:r.t,y:r.n})),C.cs,3,false,.75);dots(ch,counts.map(r=>({x:r.t,y:r.alerts})),C.alert,4,true,.8);
+ const bounds=limits(epochs.flatMap(r=>[r.original,r.filtered,r.reviewed]));ch=chart('scatter',bounds,bounds,'VTEC tratado (TECU)',false);line(ch,[{x:bounds[0],y:bounds[0]},{x:bounds[1],y:bounds[1]}],C.ink,1,[5,4]);
+ const scatter=(key,rows)=>rows.map(r=>({x:r.original,y:r[key],row:r}));dots(ch,scatter('filtered',epochs),C.filtered,2.5,false,.5);dots(ch,scatter('filtered',epochs.filter(r=>r.count)),C.alert,5,true);
+ if(selected.size)dots(ch,scatter('reviewed',epochs),C.manual,2.5,false,.55);
+ ch=chart('delta',range,limits(epochs.flatMap(r=>[r.filtered-r.original,r.reviewed-r.original,0])),'Δ VTEC (TECU)');line(ch,[{x:range[0],y:0},{x:range[1],y:0}],C.ink,1,[4,4]);line(ch,epochs.map(r=>({x:r.t,y:r.filtered-r.original})),C.filtered);if(selected.size)line(ch,epochs.map(r=>({x:r.t,y:r.reviewed-r.original})),C.manual);
+ renderForecast();
+}
+function renderForecast(){
+ const filtered=$('branch').value==='filtrado',subset=models.filter(m=>m.filtrado===filtered&&($('model').value==='all'||m.id===$('model').value));
+ const test=series.filter(r=>r.t>=utc(D.testStart)&&r.t<=utc(D.testEnd));
+ const real=observations.filter(r=>r.t>=utc(D.testStart)&&r.t<=utc(D.testEnd)&&($('svid').value==='all'||r.svid===Number($('svid').value)));
+ const ch=chart('forecast',[utc(D.testStart),utc(D.testEnd)],limits([...real.map(r=>r.v),...test.flatMap(r=>[r.observed,r.filtered]),...subset.flatMap(m=>m.points.map(r=>r.predicted))]),'VTEC (TECU)');
+ dots(ch,xy(real,'v'),C.original,2,false,.25);dots(ch,xy(test,'observed'),C.ink,3,false,.9);dots(ch,xy(test.filter(r=>r.count),'observed'),C.alert,6,true);if(filtered)line(ch,xy(test,'filtered'),C.filtered,2,[4,3]);
+ const legend=$('forecast-legend');legend.replaceChildren();
+ for(const[label,color]of[['Real por SVID (30 min)',C.original],['Mediana real (sem interpolação)',C.ink],...(filtered?[['Alvo filtrado',C.filtered]]:[]),...subset.map((m,i)=>[m.id,palette[i%8]])]){const s=document.createElement('span');s.style.setProperty('--c',color);s.textContent=label;legend.append(s);}
+ subset.forEach((m,i)=>line(ch,xy(m.points,'predicted'),palette[i%8],1.8));
+ $('model-info').textContent=subset.length===1?`${subset[0].nome} · RMSE ${num(subset[0].RMSE,2)} TECU · R² ${num(subset[0].R2,3)}`:`${subset.length} configurações · métricas completas nas figuras de dispersão`;
+}
+function isCandidate(r){const field=fields[$('criterion').value],threshold=Number($('threshold').value),needsAlert=$('review-action').value==='falso_positivo'||$('only-alerts').checked;return Number.isFinite(threshold)&&r.v!==null&&r[field]!==null&&r[field]<threshold&&(!needsAlert||r.alert);}
+function renderTable(){
+ candidates=visible.filter(r=>isCandidate(r)||selected.has(r.i));const pages=Math.max(1,Math.ceil(candidates.length/30));page=Math.min(page,pages-1);const tbody=$('rows');tbody.replaceChildren();
+ for(const r of candidates.slice(page*30,(page+1)*30)){
+  const tr=document.createElement('tr');if(selected.has(r.i))tr.className=selected.get(r.i).acao==='falso_positivo'?'restored':'removed';
+  for(const v of[stamp(r.t),r.svid,num(r.v),num(r.s4),num(r.p),r.alert?'Sinalizado':'Sem sinalização',origin[r.origin]||r.origin]){const td=document.createElement('td');td.textContent=v;tr.append(td);}
+  const td=document.createElement('td'),button=document.createElement('button');button.textContent=selected.has(r.i)?'Desfazer '+(selected.get(r.i).acao==='falso_positivo'?'falso positivo':'exclusão'):$('review-action').value==='falso_positivo'?'Retirar alerta · restaurar VTEC':'Excluir medição';button.disabled=!D.reviewAvailable;button.addEventListener('click',()=>toggle(r));td.append(button);tr.append(td);tbody.append(tr);
+ }
+ if(!candidates.length){const tr=document.createElement('tr'),td=document.createElement('td');td.colSpan=8;td.textContent='Nenhuma observação atende a este critério no recorte. Ajuste o período, o SVID ou o limiar.';tr.append(td);tbody.append(tr);}
+ $('pages').textContent=`Página ${page+1} de ${pages} · ${candidates.length.toLocaleString('pt-BR')} observações`; $('prev').disabled=page===0;$('next').disabled=page>=pages-1;
+ $('candidate-note').textContent=$('review-action').value==='falso_positivo'?'Candidatos: alertas salvos com evidência abaixo do limiar de inspeção. Retirar o alerta reinclui a medição válida; a sinalização original permanece na auditoria.':'O corte filtra a tabela. Excluir uma medição altera somente a série derivada; selecione individualmente e justifique.';
+}
+function median(values){if(!values.length)return null;values.sort((a,b)=>a-b);const m=Math.floor(values.length/2);return values.length%2?values[m]:(values[m-1]+values[m])/2;}
+function recompute(){
+ if(!selected.size){series.forEach(r=>r.reviewed=r.filtered);return;}
+ const groups=new Map();for(const r of observations){const action=selected.get(r.i)?.acao;if(r.v!==null&&action!=='excluir_observacao'&&(!r.alert||action==='falso_positivo')){if(!groups.has(r.t))groups.set(r.t,[]);groups.get(r.t).push(r.v);}}
+ const medians=series.map(r=>median(groups.get(r.t)||[]));let split=series.findIndex(r=>r.t>=utc(D.testStart));if(split<0)split=series.length;
+ for(const[start,end]of [[0,split],[split,series.length]]){
+  if(start===end)continue;let first=start;while(first<end&&medians[first]===null)first++;
+  if(first===end)throw Error('A revisão remove todas as observações de um período. Restaure pelo menos uma.');
+  for(let i=start;i<first;i++)medians[i]=medians[first];let prev=first;
+  for(let i=first+1;i<end;i++){if(medians[i]!==null){for(let j=prev+1;j<i;j++)medians[j]=medians[prev]+(medians[i]-medians[prev])*(series[j].t-series[prev].t)/(series[i].t-series[prev].t);prev=i;}}
+  for(let i=prev+1;i<end;i++)medians[i]=medians[prev];
+ }
+ series.forEach((r,i)=>r.reviewed=medians[i]);
+}
+function toggle(r){
+ if(!D.reviewAvailable){message('As métricas dos dois núcleos precisam estar salvas.',true);return;}
+ if(selected.has(r.i)){const previous=selected.get(r.i);selected.delete(r.i);try{recompute();}catch(e){selected.set(r.i,previous);recompute();message(e.message,true);return;}refresh();message('Decisão desfeita; aplicada a sinalização original nesta observação.');return;}
+ if(!isCandidate(r)){message('Este ponto não está abaixo do limiar selecionado.',true);return;}
+ if(!$('reason').value.trim()){message('Informe o motivo da decisão.',true);return;}
+ selected.set(r.i,{datetime:stamp(r.t),svid:r.svid,acao:$('review-action').value,criterio:$('criterion').value,limiar:Number($('threshold').value),motivo:$('reason').value.trim()});
+ try{recompute();}catch(e){selected.delete(r.i);message(e.message,true);return;}
+ refresh();message(`Época ${stamp(r.t)}, SVID ${r.svid}: decisão registrada. Exporte o JSON para guardar a revisão.`);
+}
+function refresh(){
+ visible=observations.filter(r=>r.t>=range[0]&&r.t<=range[1]&&($('svid').value==='all'||r.svid===Number($('svid').value)));epochs=series.filter(r=>r.t>=range[0]&&r.t<=range[1]);
+ $('nobs').textContent=visible.filter(r=>r.v!==null).length.toLocaleString('pt-BR');$('nalerts').textContent=visible.filter(r=>r.alert&&r.v!==null).length.toLocaleString('pt-BR');$('nmanual').textContent=selected.size.toLocaleString('pt-BR');$('effect').textContent=epochs.length?num(epochs.reduce((s,r)=>s+Math.abs(r.reviewed-r.filtered),0)/epochs.length):'—';
+ renderPlots();renderTable();
+ showLinked(null);
+}
+function setRange(start,end){range=[Math.max(tmin,start),Math.min(tmax,end)];$('start').value=date(range[0]);$('end').value=date(range[1]);page=0;refresh();}
+$('apply').onclick=()=>{const start=utc($('start').value),end=utc($('end').value);if(!Number.isFinite(start)||!Number.isFinite(end)||start>=end||end<tmin||start>tmax){message('Informe um intervalo válido dentro do histórico.',true);return;}setRange(start,end);};
+$('full').onclick=()=>setRange(tmin,tmax);$('last').onclick=()=>setRange(tmax-3*86400000+1800000,tmax);$('test').onclick=()=>setRange(utc(D.testStart),utc(D.testEnd));$('svid').onchange=()=>{page=0;refresh();};
+$('criterion').onchange=()=>{$('threshold').value=$('criterion').value==='S4'?D.s4Threshold:$('criterion').value==='VTEC'?10:D.probThreshold;page=0;renderTable();};
+for(const id of['threshold','only-alerts'])$(id).onchange=()=>{page=0;renderTable();};
+$('review-action').onchange=()=>{const fp=$('review-action').value==='falso_positivo';$('only-alerts').disabled=fp;$('only-alerts').checked=fp;$('criterion').value='S4';$('threshold').value=D.s4Threshold;$('reason').value=fp?'Revisão visual: alerta com S4 abaixo do limiar':'Revisão visual: medição inadequada para a série derivada';page=0;renderTable();};
+$('prev').onclick=()=>{page--;renderTable();};$('next').onclick=()=>{page++;renderTable();};
+$('undo').onclick=()=>{if(selected.size)toggle(observations[[...selected.keys()].at(-1)]);};
+$('reset').onclick=()=>{selected.clear();recompute();refresh();message('Revisão desfeita: série automática original restaurada.');};
+$('export').onclick=()=>download(`${D.station}_decisoes_revisao.json`,JSON.stringify({schema_version:2,estacao:D.station,assinatura_dados:D.signature,metricas_sha256:D.metricsSha256,exportado_em_utc:new Date().toISOString(),decisoes:[...selected.values()]},null,2),'application/json;charset=utf-8');
+$('csv').onclick=()=>download(`${D.station}_serie_revisada_previa.csv`,'datetime,VTEC_original,VTEC_filtered,VTEC_revisado\n'+series.map(r=>[stamp(r.t),r.original,r.filtered,r.reviewed].join(',')).join('\n'),'text/csv;charset=utf-8');
+$('import').onchange=async()=>{
+ try{if(!D.reviewAvailable)throw Error('Conclua as métricas dos dois núcleos antes da revisão.');const file=$('import').files[0];if(!file)return;const data=JSON.parse(await file.text());const decisions=data.schema_version===1?data.exclusoes:data.decisoes;if(![1,2].includes(data.schema_version)||data.estacao!==D.station||data.assinatura_dados!==D.signature||!Array.isArray(decisions))throw Error('Revisão incompatível com estes dados.');
+ if(data.metricas_sha256&&(!Object.entries(D.metricsSha256).every(([k,v])=>data.metricas_sha256[k]===v)||Object.keys(data.metricas_sha256).length!==Object.keys(D.metricsSha256).length))throw Error('A revisão pertence a outra versão das métricas.');
+ const lookup=new Map(observations.map(r=>[stamp(r.t)+'|'+r.svid,r])),incoming=new Map();
+ for(const raw of decisions){const d=data.schema_version===1?{...raw,acao:'excluir_observacao'}:raw,r=lookup.get(stamp(utc(d.datetime))+'|'+d.svid),key=fields[d.criterio];if(!r||!key||r.v===null||r[key]===null||!Number.isFinite(d.limiar)||!(r[key]<d.limiar)||typeof d.motivo!=='string'||!d.motivo.trim()||incoming.has(r.i)||!['falso_positivo','excluir_observacao'].includes(d.acao)||(d.acao==='falso_positivo'&&!r.alert))throw Error('Decisão inválida, duplicada ou fora do limiar.');incoming.set(r.i,{...d,datetime:stamp(r.t)});}
+ const previous=new Map(selected);selected.clear();incoming.forEach((d,i)=>selected.set(i,d));try{recompute();}catch(e){selected.clear();previous.forEach((d,i)=>selected.set(i,d));recompute();throw e;}refresh();message(`${selected.size} decisões importadas.`);
+ }catch(e){message(e.message,true);}finally{$('import').value='';}
+};
+$('branch').onchange=renderForecast;$('model').onchange=renderForecast;
+document.querySelectorAll('[data-image]').forEach(b=>b.onclick=()=>{const a=document.createElement('a');a.download=D.station+'_'+b.dataset.image+'.png';a.href=$(b.dataset.image).toDataURL('image/png');a.click();});
+for(const id of['history','s4plot','probplot','csplot','scatter','delta','forecast']){
+ const el=$(id);let down=null;
+ el.addEventListener('pointerdown',e=>{if(charts.get(id).timed&&id!=='forecast'){down=e.offsetX;el.setPointerCapture(e.pointerId);}});
+ el.addEventListener('pointerup',e=>{const ch=charts.get(id);if(down!==null&&Math.abs(e.offsetX-down)>12){const inv=x=>ch.xlim[0]+Math.max(0,Math.min(1,(x-ch.box.l)/(ch.box.r-ch.box.l)))*(ch.xlim[1]-ch.xlim[0]);setRange(Math.floor(inv(Math.min(down,e.offsetX))/1800000)*1800000,Math.ceil(inv(Math.max(down,e.offsetX))/1800000)*1800000);}down=null;});
+ el.addEventListener('pointermove',e=>{const ch=charts.get(id);let best=null,dist=100;for(const p of ch.hit){const d=(p.x-e.offsetX)**2+(p.y-e.offsetY)**2;if(d<dist){dist=d;best=p.row;}}const tip=$('tooltip');if(!best){tip.style.display='none';showLinked(null);return;}active=best;showLinked(best);const review=selected.get(best.i);tip.textContent='UTC '+stamp(best.t)+(best.svid!==undefined?`\nSVID ${best.svid} · VTEC ${num(best.v)} TECU\nS4 ${num(best.s4)} · P(severa) ${num(best.p)}\n${best.alert?'◯ Alerta original do Núcleo 1':'Sem sinalização'}\n${review?review.acao==='falso_positivo'?'◇ Falso positivo · VTEC restaurado':'× Medição excluída':origin[best.origin]||best.origin}`:`\nOriginal ${num(best.original)} · Filtrado ${num(best.filtered)}\nRevisado ${num(best.reviewed)} TECU\n${best.count} SVIDs filtrados`);tip.style.display='block';tip.style.left=Math.min(e.clientX+14,window.innerWidth-330)+'px';tip.style.top=Math.min(e.clientY+14,window.innerHeight-145)+'px';});
+ el.addEventListener('pointerleave',()=>{$('tooltip').style.display='none';active=null;showLinked(null);});
+}
+let resizeTimer;window.addEventListener('resize',()=>{clearTimeout(resizeTimer);resizeTimer=setTimeout(renderPlots,120);});
+setRange(tmax-3*86400000+1800000,tmax);
+</script>
+</body></html>

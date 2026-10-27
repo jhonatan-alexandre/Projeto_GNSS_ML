@@ -1,0 +1,150 @@
+{
+  "schema_version": 1,
+  "name": "poal_dados_disponiveis_2024",
+  "mode": "derivado",
+  "reference": "Estudo Dirigido: matriz M1-M8 e hiperparametros preservados; POAL com arquivos locais. Periodo derivado de 01/01 a 29/02/2024: ultimo dia completo observado, escolhido somente por cobertura, sem comparar desempenho. Lacunas documentadas.",
+  "inputs": {
+    "data_root": "../Dados",
+    "ismr_directories": [
+      "Dados ismr 2024"
+    ],
+    "space_weather_files": [
+      "Geomagnéticos/dados_solar_geomag_2024.txt"
+    ]
+  },
+  "outputs": {
+    "processed_data": "dados_processados",
+    "models": "modelos",
+    "results": "resultados",
+    "external_data": "dados_externos"
+  },
+  "period": {
+    "study_start": "2024-01-01 00:00:00",
+    "train_end": "2024-02-27 23:59:59",
+    "test_start": "2024-02-29 00:00:00",
+    "test_end": "2024-02-29 23:59:59"
+  },
+  "stations": [
+    "POAL"
+  ],
+  "preprocessing": {
+    "time_resolution": "30min",
+    "forecast_minutes": 30,
+    "forecast_horizon_steps": 1,
+    "rolling_window_steps": 6,
+    "daily_lag_steps": 48,
+    "minimum_elevation": 15.0,
+    "maximum_elevation": 90.0,
+    "minimum_s4": 0.0,
+    "maximum_s4": 2.0,
+    "minimum_vtec": 0.0,
+    "maximum_vtec": 250.0,
+    "use_corrected_s4": true,
+    "earth_radius_km": 6371.0,
+    "ionosphere_height_km": 450.0
+  },
+  "classification": {
+    "target_threshold_s4": 0.5,
+    "filter_probability_threshold": 0.75,
+    "temporal_folds": 5,
+    "temporal_gap": "24h",
+    "random_state": 42,
+    "features": [
+      "elev",
+      "azim_sin",
+      "azim_cos",
+      "hour_sin",
+      "hour_cos",
+      "month_sin",
+      "month_cos",
+      "S4_mean_3h",
+      "S4_std_3h",
+      "S4_lag_24h",
+      "Kp",
+      "Dst",
+      "F107",
+      "Ap",
+      "SSN"
+    ],
+    "xgboost": {
+      "n_estimators": 150,
+      "max_depth": 6,
+      "learning_rate": 0.05,
+      "scale_pos_weight": 1.0,
+      "subsample": 0.8,
+      "colsample_bytree": 0.8
+    }
+  },
+  "regression": {
+    "train_fraction": 0.8,
+    "look_back": 48,
+    "piecewise_look_back_days": 15,
+    "lstm_units": 64,
+    "dropout": 0.2,
+    "optimizer": "adam",
+    "loss": "mse",
+    "epochs": 50,
+    "batch_size": 400,
+    "early_stopping_patience": 5,
+    "space_weather_features": [
+      "Kp",
+      "Dst",
+      "F107",
+      "Ap",
+      "SSN"
+    ],
+    "architectures": [
+      {
+        "id": "M1",
+        "organization": "convencional",
+        "attention": false,
+        "multivariate": false
+      },
+      {
+        "id": "M2",
+        "organization": "convencional",
+        "attention": false,
+        "multivariate": true
+      },
+      {
+        "id": "M3",
+        "organization": "convencional",
+        "attention": true,
+        "multivariate": false
+      },
+      {
+        "id": "M4",
+        "organization": "convencional",
+        "attention": true,
+        "multivariate": true
+      },
+      {
+        "id": "M5",
+        "organization": "piecewise",
+        "attention": false,
+        "multivariate": false
+      },
+      {
+        "id": "M6",
+        "organization": "piecewise",
+        "attention": false,
+        "multivariate": true
+      },
+      {
+        "id": "M7",
+        "organization": "piecewise",
+        "attention": true,
+        "multivariate": false
+      },
+      {
+        "id": "M8",
+        "organization": "piecewise",
+        "attention": true,
+        "multivariate": true
+      }
+    ]
+  },
+  "validation": {
+    "allow_ismr_gaps": true
+  }
+}
